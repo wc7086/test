@@ -1,0 +1,125 @@
+{
+  "log": {
+      "loglevel": "none"
+  },
+  "routing": {
+      "domainStrategy": "AsIs",
+      "rules": [
+          {
+              "type": "field",
+              "ip": [
+                  "geoip:private",
+                  "geoip:cn"
+              ],
+              "outboundTag": "block"
+          },
+          {
+              "type": "field",
+              "domain": [
+                  "domain:example-example.com"
+              ],
+              "outboundTag": "IPv6-out"
+          },
+          {
+              "type": "field",
+              "network": "tcp,udp",
+              "outboundTag": "IPv4-out"
+          }
+      ]
+  },
+  "inbounds": [
+      {
+          "listen": "/dev/shm/xray_unixsocket/xray.sock",
+          "protocol": "vless",
+          "settings": {
+              "clients": [
+                  {
+                      "id": "uuid",
+                      "flow": "xtls-rprx-direct"
+                  }
+              ],
+              "decryption": "none",
+              "fallbacks": [
+                  {
+                      "alpn": "h2",
+                      "dest": "/dev/shm/nginx_unixsocket/xsiteh2.sock",
+                      "xver": 1
+                  },
+                  {
+                      "dest": "/dev/shm/nginx_unixsocket/xsite.sock",
+                      "xver": 1
+                  }
+              ]
+          },
+          "streamSettings": {
+              "network": "tcp",
+              "security": "xtls",
+              "xtlsSettings": {
+                  "alpn": [
+                      "h2",
+                      "http/1.1"
+                  ],
+                  "minVersion": "1.2",
+                  "maxVersion": "1.3",
+                  "preferServerCipherSuites": true,
+                  "certificates": [
+                      {
+                          "certificateFile": "/certs/example.com/fullchain.cer",
+                          "keyFile": "/certs/example.com/example.com.key",
+                          "ocspStapling": 3600
+                      }
+                  ]
+              }
+          }
+      },
+      {
+          "listen": "/dev/shm/xray_unixsocket/grpc.sock",
+          "protocol": "vless",
+          "settings": {
+              "clients": [
+                  {
+                      "id": "uuid"
+                  }
+              ],
+              "decryption": "none"
+          },
+          "streamSettings": {
+              "network": "grpc",
+              "grpcSettings": {
+                  "serviceName": "examplepathfuckgrpc"
+              }
+          }
+      },
+      {
+          "port": 9999,
+          "protocol": "shadowsocks",
+          "settings": {
+              "clients": [
+                  {
+                      "method": "chacha20-ietf-poly1305",
+                      "password": "examplepath"
+                  }
+              ],
+              "network": "tcp,udp"
+          }
+      }
+  ],
+  "outbounds": [
+      {
+          "tag": "IPv4-out",
+          "protocol": "freedom",
+          "settings": {}
+      },
+      {
+          "tag": "IPv6-out",
+          "protocol": "freedom",
+          "settings": {
+              "domainStrategy": "UseIPv6"
+          }
+      },
+      {
+          "tag": "block",
+          "protocol": "blackhole"
+      }
+  ]
+}
