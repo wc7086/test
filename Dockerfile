@@ -22,14 +22,16 @@ RUN set -ex \
     && sh xray.sh "${TARGETPLATFORM}" \
     && rm -fv xray.sh \
     && unzip xray.zip \
-    && wget -O /usr/local/share/xray/geosite.dat https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat \
-    && wget -O /usr/local/share/xray/geoip.dat https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
+    && wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat \
+    && wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
 
 FROM --platform=${TARGETPLATFORM} alpine:latest as xray
 
 ARG TARGETPLATFORM
 
 COPY --from=build /build/xray /usr/bin/xray
+COPY --from=build /build/geosite.dat /usr/local/share/xray/geosite.dat
+COPY --from=build /build/geoip.dat /usr/local/share/xray/geoip.dat
 
 #RUN set -ex \
 #    && mkdir -p /var/log/xray /usr/local/share/xray 
