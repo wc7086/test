@@ -22,8 +22,8 @@ RUN set -ex \
     && sh xray.sh "${TARGETPLATFORM}" \
     && rm -fv xray.sh \
     && unzip xray.zip \
-    && wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat \
-    && wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
+    && wget -O geosite.dat https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat \
+    && wget -O geoip.dat https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
 
 FROM --platform=${TARGETPLATFORM} alpine:latest as xray
 
